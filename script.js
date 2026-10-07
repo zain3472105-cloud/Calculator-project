@@ -1,111 +1,118 @@
+let A = null;
+let B = null;
+let operator = null;
+
 const buttonValues = [
   "⌫", "AC", "%", "/",
-  "7", "8", "9", "×",
+  "7", "8", "9", "*",
   "4", "5", "6", "-",
   "1", "2", "3", "+",
   "+/-", "0", ".", "="
-]
-const rightSymbols =["/","×", "-", "+", "=" ];
-const topSymbols = ["AC", "+/-", "%"];
+];
+
+const topSymbols = ["⌫", "AC", "%"];
+const rightSymbols = ["/", "*", "-", "+", "="];
 
 const display = document.getElementById("display");
+buttonValues.forEach(value => {
+  const button = document.createElement("button");
+  button.innerText = value;
+  button.classList.add("calc-btn");
 
-//A+B, A*B, A-B, A/B
+  if (rightSymbols.includes(value)) {
+    button.style.backgroundColor = "#FF9500";
+    button.style.color = "#ffffff";
+  } else if (topSymbols.includes(value)) {
+    button.style.backgroundColor = "#D4D4D4";
+    button.style.color = "#1C1C1C";
+  } else {
+    button.style.backgroundColor = "#333333";
+    button.style.color = "#ffffff";
+  }
 
-let A = 0;
-let operator = null;
-let B = null;
+  document.getElementById("buttons").appendChild(button);
 
-function clearAll() {
-    A = 0;
-    operator = null;
-    B = null;
-}
-
-for(let i = 0; i <buttonValues.length; i++) {
-    //<button>AC</button>
-    let value = buttonValues[i];
-    let button = document.createElement("button");
-    button.innerText = value;
-    //style button color
-   if (value == "0") {
-      button.style.width = "160px";
-      button.style.gridColumn = "span 3";
-   }
-   
-    if (rightSymbols.includes(value)) {
-        button.style.backgroundColor = "#FF9500";
+  button.addEventListener("click", function() {
+    
+    if (value === "⌫") {
+      display.value = display.value.slice(0, -1);
+      if (display.value === "") {
+        display.value = "0";
+      }
+      return;
     }
-    else if (topSymbols.includes(value)) {
-        button.style.backgroundColor = "#D4D4D2";
-        button.style.color = "#1C1C1C";
+
+    if (value === "AC") {
+      A = null;
+      B = null;
+      operator = null;
+      display.value = "0";
+      return;
     }
-}
-    //process bitton clicks
-    button.addEventListener("click", function() {
-         if (rightSymbols.includes(value)) {
-             if(value == "=") {
-                if (A !=null){
-                    B = display.value;
-                    let numA = Number(A);
-                    let numB = Number(B);
 
-                    if (operator == "/"){
-                        display.value = numA/numB;
-                    }
-                    else if (operator == "×"){
-                        display.value = numA*numB
-                    }
-                    else if (operator == "-") {
-                        display.value = numA-numB;
-                    }
-                    else if (operator == "+") {
-                        display.value = numA+numB;
-                    }
-                    clearAll();
-                }
-             }
-             else {
-                operator = value;
-                A = display.value;
-                display.value = "";
-             }
-         }
-         else if(topSymbols.includes(value)) {
-            if(value == "AC") {
-                clearAll();
-                display.value = "";
-            }
-            else if (value == "+/-") {
-                if(display.value != "" && display.value != "0") {
-                    if(display.value[0] == "-") {
-                        display.value = display.value.slice(1);
-                    }
-                    else {
-                        display.value = "-" + display.value;
-                    }
-                }
+    if (value === "+/-") {
+      if (display.value !== "0" && display.value !== "") {
+        display.value = String(Number(display.value) * -1);
+      }
+      return;
+    }
 
-            }
-            else if (value == "%") {
-                display.value =Number(display.value)/100;
-            }
-         }
-         else  { //numbers or .
-            if (value ==".") {
-                if (display.value !=  "" && !display.value.includes(value)) {
-                    display.value += value;
-                }
-            }
-            else if (display.value == "0") {
-                display.value = value;
-            }
-            else {
-                display.value += value;
-            }
-         }
+    if (value === "%") {
+      if (display.value !== "") {
+        display.value = String(Number(display.value) / 100);
+      }
+      return;
+    }
 
+    if (value === "=") {
+      if (operator !== null && display.value !== "") {
+        B = Number(display.value);
+        let result = 0;
 
-    });
-    //add button to calculator
-    document.getElementById("buttons").appendChild(button);
+        if (operator === "+") result = A + B;
+        else if (operator === "-") result = A - B;
+        else if (operator === "*") result = A * B;
+        else if (operator === "/") {
+          if (B === 0) {
+            display.value = "Error";
+            A = null; B = null; operator = null;
+            return;
+          }
+          result = A / B;
+        }
+
+        display.value = String(result);
+        A = result;
+        operator = null;
+        B = null;
+      }
+      return;
+    }
+
+    if (rightSymbols.includes(value) && value !== "=") {
+      if (display.value !== "") {
+        A = Number(display.value);
+        operator = value;
+        display.value = "0";
+      }
+      return;
+    }
+
+    if (value === ".") {
+      if (!display.value.includes(".")) {
+        if (display.value === "" || display.value === "0") {
+          display.value = "0.";
+        } else {
+          display.value += ".";
+        }
+      }
+      return;
+    }
+
+    if (display.value === "0") {
+      display.value = value;
+    } else {
+      display.value += value;
+    }
+  });
+});
